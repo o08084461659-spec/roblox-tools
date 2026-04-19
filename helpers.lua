@@ -1,45 +1,36 @@
--- Utility function to find the maximum value in a table
-local function findMaxValue(t)
-    local maxVal = t[1]
-    for i = 2, #t do
-        if t[i] > maxVal then
-            maxVal = t[i]
+-- Helper Functions for Common Roblox Operations
+
+local Helpers = {}
+
+-- Function to get a player by username
+function Helpers.getPlayerByUsername(username)
+    local players = game:GetService("Players")
+    for _, player in ipairs(players:GetPlayers()) do
+        if player.Name:lower() == username:lower() then
+            return player
         end
     end
-    return maxVal
+    return nil
 end
 
--- Utility function to calculate the average of a table
-local function calculateAverage(t)
-    local sum = 0
-    for _, v in ipairs(t) do
-        sum = sum + v
-    end
-    return sum / #t
+-- Function to add a new part to the workspace
+function Helpers.createPart(size, position, color)
+    local part = Instance.new("Part")
+    part.Size = size or Vector3.new(4, 1, 2)
+    part.Position = position or Vector3.new(0, 5, 0)
+    part.Color = color or Color3.new(1, 0, 0)
+    part.Anchored = true
+    part.Parent = workspace
+    return part
 end
 
--- Utility function to filter a table based on a condition
-local function filterTable(t, condition)
-    local result = {}
-    for _, v in ipairs(t) do
-        if condition(v) then
-            table.insert(result, v)
-        end
-    end
-    return result
+-- Function to play a sound from a given asset ID
+function Helpers.playSound(assetId, volume)
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid:" .. tostring(assetId)
+    sound.Volume = volume or 1
+    sound:Play()
+    return sound
 end
 
--- Better error handling for string manipulation
-local function safeStringManipulation(str, func)
-    if type(str) ~= 'string' then
-        error('Expected a string for manipulation')
-    end
-    return func(str)
-end
-
-return {
-    findMaxValue = findMaxValue,
-    calculateAverage = calculateAverage,
-    filterTable = filterTable,
-    safeStringManipulation = safeStringManipulation
-}
+return Helpers
