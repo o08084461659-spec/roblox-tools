@@ -1,27 +1,45 @@
--- Main processing loop for Roblox tools
+-- Core Module for Roblox Tools
+local Core = {}
 
-local function validateInput(input)
-    if type(input) ~= 'string' then
-        return false, 'Input must be a string.'
+-- Table to store performance metrics
+Core.metrics = {}
+
+-- Function to track FPS
+function Core.trackFPS()
+    local lastTime = tick()
+    local frameCount = 0
+    while true do
+        local currentTime = tick()
+        frameCount = frameCount + 1
+        if currentTime - lastTime >= 1 then
+            local fps = frameCount / (currentTime - lastTime)
+            table.insert(Core.metrics, fps)
+            lastTime = currentTime
+            frameCount = 0
+        end
+        wait(0.03)  -- Yield for a small time
     end
-    if input:match('^[%w%s]+$') == nil then
-        return false, 'Input contains invalid characters.'
-    end
-    return true
 end
 
-local function processInput(input)
-    local isValid, errorMsg = validateInput(input)
-    if not isValid then
-        warn('Input validation failed: ' .. errorMsg)
-        return
+-- Function to get average FPS
+function Core.getAverageFPS()
+    local total = 0
+    local count = #Core.metrics
+    for _,fps in ipairs(Core.metrics) do
+        total = total + fps
     end
-
-    print('Processing input: ' .. input)
-    -- Insert input processing logic here
+    return count > 0 and (total / count) or 0
 end
 
-while true do
-    local userInput = io.read()  -- Simulate user input in a loop
-    processInput(userInput)
+-- Optimize rendering loop
+function Core.optimizeRendering()
+    local lastCall = tick()
+    game:GetService('RunService').RenderStepped:Connect(function()
+        if tick() - lastCall >= 0.016 then  -- About 60 FPS
+            lastCall = tick()
+            -- Place rendering logic here
+        end
+    end)
 end
+
+return Core
