@@ -1,54 +1,45 @@
--- Utility function to check if a value is in a table
-function table.includes(table, value)
-    for _, v in ipairs(table) do
-        if v == value then
-            return true
-        end
+-- Utility functions for Roblox 
+
+local Utils = {}
+
+-- Safely retrieve table value with error handling
+function Utils.safeGet(table, key)
+    if type(table) ~= 'table' then
+        error('First argument must be a table')
     end
-    return false
+    if table[key] == nil then
+        return 'Key does not exist in table'
+    end
+    return table[key]
 end
 
--- Utility function to merge two tables
-function table.merge(target, source)
-    for k, v in pairs(source) do
-        if type(v) == 'table' and type(target[k] or false) == 'table' then
-            target[k] = table.merge(target[k] or {}, v)
-        else
-            target[k] = v
-        end
+-- Function to add elements to a table with error handling
+function Utils.safeAdd(table, value)
+    if type(table) ~= 'table' then
+        error('First argument must be a table')
     end
-    return target
+    if value == nil then
+        error('Value cannot be nil')
+    end
+    table[#table + 1] = value
 end
 
--- Utility function to deep clone a table
-function table.deepcopy(original)
-    local copy = {}
-    for k, v in pairs(original) do
-        if type(v) == 'table' then
-            copy[k] = table.deepcopy(v)
-        else
-            copy[k] = v
-        end
+-- Safe snippet to combine two tables
+function Utils.safeMerge(table1, table2)
+    if type(table1) ~= 'table' or type(table2) ~= 'table' then
+        error('Both arguments must be tables')
     end
-    return copy
+    for key, value in pairs(table2) do
+        table1[key] = value
+    end
 end
 
--- Utility function to find the maximum value in a table
-function table.max(tbl)
-    local maxVal = tbl[1]
-    for i = 2, #tbl do
-        if tbl[i] > maxVal then
-            maxVal = tbl[i]
-        end
+-- Example usage: Utility for logging with error handling
+function Utils.safeLog(message)
+    if type(message) ~= 'string' then
+        error('Log message must be a string')
     end
-    return maxVal
+    print(os.date('%Y-%m-%d %H:%M:%S') .. ' - ' .. message)
 end
 
--- Utility function to format a table as string
-function table.tostring(tbl)
-    local str = "{"
-    for k, v in pairs(tbl) do
-        str = str .. tostring(k) .. ": " .. tostring(v) .. ", "
-    end
-    return str:sub(1, -3) .. "}"
-end
+return Utils
