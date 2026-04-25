@@ -1,41 +1,35 @@
--- Configuration Loader with Defaults
+-- Config module for Roblox tools
+
+---@class Config
 local Config = {}
 
-function Config.loadDefaults()
-    return {
-        volume = 0.5,
-        graphicsQuality = 3,
-        language = 'en',
-        showHints = true,
+--- The default settings for the tools
+---@type table
+Config.Defaults = {
+    sensitivity = 0.5,
+    volume = 1.0,
+    brightness = 0.8,
+    keyBindings = {
+        jump = Enum.KeyCode.Space,
+        interact = Enum.KeyCode.E,
+        inventory = Enum.KeyCode.I
     }
-end
+}
 
-function Config.loadCustom(filePath)
-    local customConfig = {}
-    local success, err = pcall(function()
-        local file = io.open(filePath, 'r')
-        if not file then error('Could not open config file') end
-        customConfig = game:GetService('HttpService'):JSONDecode(file:read('*a'))
-        file:close()
-    end)
-    if not success then
-        warn('Loading custom config failed: ' .. err)
-        return Config.loadDefaults()
+--- Initialize the configuration with custom settings
+---@param customSettings table
+function Config.initialize(customSettings)
+    for key, value in pairs(customSettings) do
+        if Config.Defaults[key] ~= nil then
+            Config.Defaults[key] = value
+        end
     end
-    return customConfig
 end
 
-function Config.mergeDefaults(custom)
-    local defaults = Config.loadDefaults()
-    for key, value in pairs(custom) do
-        defaults[key] = value
-    end
-    return defaults
-end
-
-function Config.load(filePath)
-    local customConfig = Config.loadCustom(filePath)
-    return Config.mergeDefaults(customConfig)
+--- Retrieve the current configuration settings
+---@return table
+function Config.getSettings()
+    return Config.Defaults
 end
 
 return Config
