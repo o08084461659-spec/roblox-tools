@@ -1,34 +1,40 @@
--- Retry logic for network operations
-
+-- Utility function to handle Roblox data
 local HttpService = game:GetService('HttpService')
 
-local function performRequest(url, method, retries, delay)
-    local attempt = 0
-    local response, errorMessage
+local function serializeToJson(data)
+    return HttpService:JSONEncode(data)
+end
 
-    while attempt < retries do
-        attempt = attempt + 1
-        
-        local success, result = pcall(function()
-            return HttpService:RequestAsync({
-                Url = url,
-                Method = method,
-                Headers = {['Content-Type'] = 'application/json'}
-            })
-        end)
-        
-        if success and result.Success then
-            return result.Body
-        else
-            errorMessage = result or 'Unknown error'
-            print('Attempt ' .. attempt .. ' failed: ' .. errorMessage)
-            wait(delay)
-        end
+local function deserializeFromJson(jsonString)
+    return HttpService:JSONDecode(jsonString)
+end
+
+local function saveDataToStore(data, key)
+    local jsonData = serializeToJson(data)
+    local success, err = pcall(function()
+        -- Example of storing in a module variable, can be enhanced
+        local storage = require(game.ServerStorage:WaitForChild('DataStore'))
+        storage[key] = jsonData
+    end)
+    if not success then
+        warn('Error saving data: ' .. err)
     end
-    
-    error('All retry attempts failed: ' .. errorMessage)
+end
+
+local function loadDataFromStore(key)
+    local storage = require(game.ServerStorage:WaitForChild('DataStore'))
+    local jsonData = storage[key]
+    if jsonData then
+        return deserializeFromJson(jsonData)
+    else
+        warn('No data found for key: ' .. key)
+        return nil
+    end
 end
 
 return {
-    performRequest = performRequest
+    saveDataToStore = saveDataToStore,
+    loadDataFromStore = loadDataFromStore,
+    serializeToJson = serializeToJson,
+    deserializeFromJson = deserializeFromJson,
 }
