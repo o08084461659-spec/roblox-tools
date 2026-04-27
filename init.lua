@@ -1,45 +1,37 @@
--- Initialize Roblox services
-local Players = game:GetService('Players')
-local ReplicatedStorage = game:GetService('ReplicatedStorage')
+-- Initialize the Roblox tools module
+local tools = {}
 
--- Error handling function
-local function handleError(err)
-    warn('Error occurred: ' .. tostring(err))
-end
-
--- Function to safely get player
-local function getPlayerByName(name)
-    local player = Players:FindFirstChild(name)
-    if not player then
-        handleError('Player not found: ' .. name)
-        return nil
+-- Function to create a new tool
+function tools.createTool(name, properties)
+    local tool = Instance.new("Tool")
+    tool.Name = name
+    for prop, value in pairs(properties) do
+        tool[prop] = value
     end
-    return player
+    return tool
 end
 
--- Function to clone an item safely
-local function cloneItem(itemName)
-    local item = ReplicatedStorage:FindFirstChild(itemName)
-    if not item then
-        handleError('Item not found: ' .. itemName)
-        return nil
-    end
-    return item:Clone()
+-- Function to setup tool events
+function tools.setupToolEvents(tool)
+    tool.Activated:Connect(function()
+        print(tool.Name .. " activated!")
+    end)
 end
 
--- Example of use
-local function spawnItemForPlayer(playerName, itemName)
-    local player = getPlayerByName(playerName)
-    if player then
-        local newItem = cloneItem(itemName)
-        if newItem then
-            newItem.Parent = player.Backpack
-            print('Item spawned for ' .. playerName)
-        end
+-- Function to initialize all tools
+function tools.initializeTools()
+    local toolsList = {"Sword", "Axe", "Pickaxe"}
+    for _, toolName in ipairs(toolsList) do
+        local tool = tools.createTool(toolName, {ToolTip = "A powerful tool!", CanBeDropped = true})
+        tools.setupToolEvents(tool)
+        tool.Parent = game.Players.LocalPlayer.Backpack
     end
 end
 
--- Test the function with error handling
-spawnItemForPlayer('NonExistentPlayer', 'Sword')
-spawnItemForPlayer('ExistingPlayer', 'NonExistentItem')
-spawnItemForPlayer('ExistingPlayer', 'Sword')
+-- Binds the initialization to the PlayerAdded event
+game.Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Wait()
+    tools.initializeTools()
+end)
+
+return tools
