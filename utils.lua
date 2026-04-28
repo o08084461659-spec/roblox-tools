@@ -1,25 +1,29 @@
--- Function to perform a network operation with retry logic
-local function performNetworkOperation(url, retries, delay)
-    local attempts = 0
-    local success, response
+-- Retry logic for network operations in Roblox
+local HttpService = game:GetService('HttpService')
 
+local function retryNetworkOperation(url, method, data, retries, delay)
+    local attempts = 0
+    local response
     while attempts < retries do
-        success, response = pcall(function()
-            return game:GetService('HttpService'):GetAsync(url)
+        attempts = attempts + 1
+        local success, err = pcall(function()
+            if method == 'GET' then
+                response = HttpService:GetAsync(url)
+            elseif method == 'POST' then
+                response = HttpService:PostAsync(url, HttpService:JSONEncode(data), Enum.HttpContentType.ApplicationJson)
+            end
         end)
 
         if success then
-            return response
+            return HttpService:JSONDecode(response)
         else
-            attempts = attempts + 1
-            print('Attempt ' .. attempts .. ' failed: ' .. response)
+            warn('Attempt ' .. attempts .. ' failed: ' .. err)
             wait(delay)
         end
     end
-
-    error('Network operation failed after ' .. attempts .. ' attempts')
+    error('Failed after ' .. attempts .. ' attempts.')
 end
 
 return {
-    performNetworkOperation = performNetworkOperation,
+    retryNetworkOperation = retryNetworkOperation
 }
