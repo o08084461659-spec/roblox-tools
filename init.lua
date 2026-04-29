@@ -1,37 +1,21 @@
--- Initialize the Roblox tools module
-local tools = {}
-
--- Function to create a new tool
-function tools.createTool(name, properties)
-    local tool = Instance.new("Tool")
-    tool.Name = name
-    for prop, value in pairs(properties) do
-        tool[prop] = value
-    end
-    return tool
+-- Input validation function
+local function isValidInput(input)
+    return type(input) == "string" and #input > 0
 end
 
--- Function to setup tool events
-function tools.setupToolEvents(tool)
-    tool.Activated:Connect(function()
-        print(tool.Name .. " activated!")
-    end)
-end
+-- Main processing loop
+local function mainLoop()
+    while true do
+        print("Enter a command:")
+        local userInput = io.read()
 
--- Function to initialize all tools
-function tools.initializeTools()
-    local toolsList = {"Sword", "Axe", "Pickaxe"}
-    for _, toolName in ipairs(toolsList) do
-        local tool = tools.createTool(toolName, {ToolTip = "A powerful tool!", CanBeDropped = true})
-        tools.setupToolEvents(tool)
-        tool.Parent = game.Players.LocalPlayer.Backpack
+        if isValidInput(userInput) then
+            print(string.format("You entered: %s", userInput))
+            -- Perform processing here
+        else
+            print("Invalid input. Please try again.")
+        end
     end
 end
 
--- Binds the initialization to the PlayerAdded event
-game.Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Wait()
-    tools.initializeTools()
-end)
-
-return tools
+mainLoop()
