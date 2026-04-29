@@ -1,21 +1,28 @@
--- Input validation function
-local function isValidInput(input)
-    return type(input) == "string" and #input > 0
-end
+-- Simple Logger with Rotation
+local Logger = {}
 
--- Main processing loop
-local function mainLoop()
-    while true do
-        print("Enter a command:")
-        local userInput = io.read()
+Logger.logFile = "log.txt"
+Logger.maxSize = 1024 * 10 -- 10 KB
 
-        if isValidInput(userInput) then
-            print(string.format("You entered: %s", userInput))
-            -- Perform processing here
-        else
-            print("Invalid input. Please try again.")
+function Logger:rotateLog()
+    local info = io.open(self.logFile, "r")
+    if info then
+        local fileSize = info:seek("end")
+        info:close()
+        if fileSize >= self.maxSize then
+            os.rename(self.logFile, self.logFile .. ".old")
         end
     end
 end
 
-mainLoop()
+function Logger:log(message)
+    self:rotateLog()
+    local logFile = io.open(self.logFile, "a")
+    if logFile then
+        local timestamp = os.date("%Y-%m-%d %H:%M:%S")
+        logFile:write(string.format("[%s] %s\n", timestamp, message))
+        logFile:close()
+    end
+end
+
+return Logger
