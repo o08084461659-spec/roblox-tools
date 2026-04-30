@@ -1,36 +1,52 @@
--- Utility function to perform network operations with retry logic
+-- Utility functions for common operations
 
-local HttpService = game:GetService('HttpService')
+local Utils = {}
 
-local function performNetworkOperation(url, method, data, retries)
-    local attempt = 0
-    local success, result
-
-    while attempt < retries do
-        attempt = attempt + 1
-        success, result = pcall(function()
-            return HttpService:RequestAsync({
-                Url = url,
-                Method = method,
-                Body = HttpService:JSONEncode(data),
-                Headers = {['Content-Type'] = 'application/json'}
-            })
-        end)
-
-        if success and result.Success then
-            return result.Body
-        elseif not success then
-            warn('Network error: ' .. tostring(result))
-        else
-            warn('Attempt ' .. attempt .. ' failed: ' .. tostring(result.StatusCode))
-        end
-
-        wait(1)  -- Wait before retrying
+-- Function to merge two tables
+function Utils.mergeTables(t1, t2)
+    local result = {}
+    for k, v in pairs(t1) do
+        result[k] = v
     end
-
-    error('Network operation failed after ' .. retries .. ' attempts')
+    for k, v in pairs(t2) do
+        if type(v) == 'table' and type(result[k]) == 'table' then
+            result[k] = Utils.mergeTables(result[k], v)
+        else
+            result[k] = v
+        end
+    end
+    return result
 end
 
-return {
-    performNetworkOperation = performNetworkOperation
-}
+-- Function to deep clone a table
+function Utils.deepClone(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[Utils.deepClone(orig_key)] = Utils.deepClone(orig_value)
+        end
+        setmetatable(copy, Utils.deepClone(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+-- Function to check if a table is empty
+function Utils.isTableEmpty(t)
+    return next(t) == nil
+end
+
+-- Function to find a value in an array
+function Utils.findValue(array, value)
+    for index, v in ipairs(array) do
+        if v == value then
+            return index
+        end
+    end
+    return nil
+end
+
+return Utils
