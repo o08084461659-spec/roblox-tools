@@ -1,45 +1,30 @@
--- Core Module for Roblox Tools
-local Core = {}
-
--- Table to store performance metrics
-Core.metrics = {}
-
--- Function to track FPS
-function Core.trackFPS()
-    local lastTime = tick()
-    local frameCount = 0
-    while true do
-        local currentTime = tick()
-        frameCount = frameCount + 1
-        if currentTime - lastTime >= 1 then
-            local fps = frameCount / (currentTime - lastTime)
-            table.insert(Core.metrics, fps)
-            lastTime = currentTime
-            frameCount = 0
+-- Utility function to handle retries for network operations
+local function retryNetworkOperation(operation, retries, delay)
+    local success, result
+    local attempts = 0
+    
+    while attempts < retries do
+        success, result = pcall(operation)
+        if success then
+            return result
         end
-        wait(0.03)  -- Yield for a small time
+        attempts = attempts + 1
+        print(string.format("Attempt %d failed: %s. Retrying in %d seconds...", attempts, result, delay))
+        wait(delay)
     end
+    error(string.format("All %d attempts failed.", retries))
 end
 
--- Function to get average FPS
-function Core.getAverageFPS()
-    local total = 0
-    local count = #Core.metrics
-    for _,fps in ipairs(Core.metrics) do
-        total = total + fps
-    end
-    return count > 0 and (total / count) or 0
+-- Example usage of retry logic
+local function fetchDataFromServer()
+    return game.HttpService:GetAsync("https://example.com/data")
 end
 
--- Optimize rendering loop
-function Core.optimizeRendering()
-    local lastCall = tick()
-    game:GetService('RunService').RenderStepped:Connect(function()
-        if tick() - lastCall >= 0.016 then  -- About 60 FPS
-            lastCall = tick()
-            -- Place rendering logic here
-        end
-    end)
+local function performNetworkTask()
+    local retries = 3
+    local delay = 2
+    local data = retryNetworkOperation(fetchDataFromServer, retries, delay)
+    print("Data fetched successfully:", data)
 end
 
-return Core
+performNetworkTask()
